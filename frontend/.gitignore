@@ -1,0 +1,26 @@
+# Dependencies - Too big to upload, 'npm install' recreates these
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Security - NEVER upload your database passwords or secret keys
+.env
+backend/.env
+
+# Build folders - These are generated for production
+dist/
+build/
+frontend/build/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# User-specific uploads (optional)
+# Only ignore this if you don't want your test images/PDFs on GitHub
+backend/uploads/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
