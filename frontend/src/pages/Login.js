@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
-// ✅ Setup dynamic API URL for production vs development
+// ✅ Setup dynamic API URL (Fixed the fallback string)
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Login = () => {
@@ -19,7 +19,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // ✅ Use API_BASE instead of hardcoded localhost
+            // ✅ Use API_BASE for the request
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
                 email: email.trim().toLowerCase(), 
                 password 
@@ -29,6 +29,7 @@ const Login = () => {
             const user = data.user || data;
             const role = user.role || data.role;
 
+            // ✅ Store user data
             localStorage.setItem('token', data.token);
             localStorage.setItem('name', user.name);
             localStorage.setItem('userId', user.id || user._id || data.userId);
