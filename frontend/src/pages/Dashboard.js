@@ -9,7 +9,7 @@ import Request from '../components/Request';
 
 const Dashboard = () => {
   // Environment variable for API URL (Set this in Vercel Dashboard)
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app';
 
   const userName = localStorage.getItem('name') || "User";
   const userRole = localStorage.getItem('role') || "Requester";

@@ -20,7 +20,7 @@ const AdminDashboard = () => {
   const adminName = localStorage.getItem('name') || "Admin";
 
   const axiosAuth = useMemo(() => axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: 'https://doctrack-fend.vercel.app/api',
     headers: { Authorization: `Bearer ${token}` }
   }), [token]);
 

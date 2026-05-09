@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
 // ✅ Setup dynamic API URL (Fixed the fallback string)
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app/api';
 
 const Login = () => {
     const [email, setEmail] = useState('');

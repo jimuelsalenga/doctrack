@@ -4,7 +4,7 @@ import { Upload, X } from 'lucide-react';
 
 const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
   // Use environment variable for API URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app';
 
   const [documentType, setDocumentType] = useState('');
   const [description, setDescription] = useState('');

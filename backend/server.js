@@ -14,7 +14,11 @@ const app = express();
 
 // ====================== MIDDLEWARES ======================
 app.use(cors({
-  origin: ['https://doctrack-fend.vercel.app', 'http://localhost:3000'],
+  origin: [
+    'https://doctrack-fend.vercel.app', 
+    'http://localhost:3000',
+    /\.vercel\.app$/ // This allows all vercel.app subdomains
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
