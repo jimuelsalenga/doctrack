@@ -13,7 +13,7 @@ if (!fs.existsSync(uploadDir)) {
 // Multer Storage Configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir + '/');
+        cb(null, + '/tmp');
     },
     filename: (req, file, cb) => {
         // Use path.extname to keep the original file extension safely
