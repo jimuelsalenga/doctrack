@@ -8,7 +8,7 @@ import {
 import Request from '../components/Request';
 
 const Dashboard = () => {
-  // Use environment variable for API URL (Crucial for Vercel)
+  // Environment variable for API URL (Set this in Vercel Dashboard)
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const userName = localStorage.getItem('name') || "User";
@@ -81,7 +81,7 @@ const Dashboard = () => {
     );
   }, [requests, searchTerm]);
 
-  // --- COUNTER LOGIC (Synced with UI labels) ---
+  // --- COUNTER LOGIC ---
   const activeCount = requests.filter(r => 
     ['Pending', 'Under Review'].includes(r.status)
   ).length;
@@ -98,7 +98,6 @@ const Dashboard = () => {
     if (window.confirm("Are you sure you want to sign out?")) {
       localStorage.clear();
       sessionStorage.clear();
-      // Use replace to prevent back-button navigation
       window.location.replace('/login'); 
     }
   };
@@ -230,6 +229,7 @@ const Dashboard = () => {
                   <ProfileField label="Student ID" value={userId} />
                   <ProfileField label="Account Status" value="Verified" isStatus />
                   <ProfileField label="Email" value={userEmail} />
+                  {/* Fixed: These variables are now used, clearing ESLint warnings */}
                   <ProfileField label="Program" value={userProgram} />
                   <ProfileField label="Year Level" value={userYear} />
                 </div>
