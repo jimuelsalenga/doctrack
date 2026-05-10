@@ -12,10 +12,14 @@ router.post('/register', async (req, res) => {
         const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) return res.status(400).json({ message: "User already exists" });
 
+        // ✅ EXPLICIT HASHING: Hash the password right here
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         const newUser = new User({
             name,
             email: normalizedEmail,
-            password, 
+            password: hashedPassword, // Save the safely hashed password
             role: role || 'Requester',
             program: program || 'N/A', 
             yearLevel: yearLevel || 'N/A'
@@ -44,6 +48,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
+        // Compare the typed password with the explicitly hashed password
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
@@ -71,10 +76,9 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// ✅ ADDED: GET ALL USERS ROUTE
+// --- GET ALL USERS ROUTE ---
 router.get('/users', async (req, res) => {
     try {
-        // .select('-password') ensures we don't accidentally send hashed passwords back!
         const users = await User.find().select('-password'); 
         res.status(200).json(users);
     } catch (err) {
