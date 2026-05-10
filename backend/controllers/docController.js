@@ -6,6 +6,7 @@ exports.getAllRequests = async (req, res) => {
         const { role, userId } = req.query;
         let query = {};
 
+        // If requester, only show their own documents
         if (role === 'Requester') {
             if (!userId) return res.status(400).json({ message: "User ID is required" });
             query = { requester: userId };
@@ -50,7 +51,7 @@ exports.updateRequestStatus = async (req, res) => {
 // Create new request
 exports.createRequest = async (req, res) => {
     try {
-        const { requester, requesterName, requesterEmail, documentType, description } = req.body;
+        const { requester, requesterName, requesterEmail, documentType, description, program, yearLevel } = req.body;
 
         if (!requesterEmail || requesterEmail === 'undefined') {
             return res.status(400).json({ message: "Requester email is missing." });
@@ -62,8 +63,12 @@ exports.createRequest = async (req, res) => {
             requesterEmail,
             documentType,
             description,
+            // Capture these from the frontend state
+            program: program || 'N/A',
+            yearLevel: yearLevel || 'N/A',
             fileName: req.file ? req.file.filename : null,
-            filePath: req.file ? req.file.path : null,
+            // NOTE: On Vercel, this path in /tmp is temporary!
+            filePath: req.file ? req.file.path : null, 
             status: 'Pending'
         });
 
