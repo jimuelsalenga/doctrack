@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
 // ✅ FIXED: Point to your ACTUAL backend URL
-const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-nyuyd9e0y-jimuels-projects-b0ad682c.vercel.app';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-taupe.vercel.app';
 
 const Register = () => {
     // Initializing with clean empty strings
