@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 // --- REGISTER ROUTE ---
 router.post('/register', async (req, res) => {
     try {
-        // ✅ ADDED program and yearLevel here
         const { name, email, password, role, program, yearLevel } = req.body;
         const normalizedEmail = email.toLowerCase().trim();
 
@@ -18,7 +17,7 @@ router.post('/register', async (req, res) => {
             email: normalizedEmail,
             password, 
             role: role || 'Requester',
-            program: program || 'N/A', // ✅ Save new fields
+            program: program || 'N/A', 
             yearLevel: yearLevel || 'N/A'
         });
 
@@ -54,7 +53,6 @@ router.post('/login', async (req, res) => {
                 { expiresIn: '1h' }
             );
 
-            // ✅ Include program and yearLevel in response for frontend localStorage
             res.json({
                 token,
                 role: user.role,
@@ -70,6 +68,18 @@ router.post('/login', async (req, res) => {
     } catch (err) {
         console.error("Login Error:", err);
         res.status(500).json({ message: "Server error during login" });
+    }
+});
+
+// ✅ ADDED: GET ALL USERS ROUTE
+router.get('/users', async (req, res) => {
+    try {
+        // .select('-password') ensures we don't accidentally send hashed passwords back!
+        const users = await User.find().select('-password'); 
+        res.status(200).json(users);
+    } catch (err) {
+        console.error("Fetch Users Error:", err);
+        res.status(500).json({ message: "Failed to fetch users", error: err.message });
     }
 });
 
