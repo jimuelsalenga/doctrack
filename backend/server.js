@@ -17,10 +17,11 @@ app.use(cors({
   origin: [
     'https://doctrack-fend.vercel.app', 
     'http://localhost:3000',
-    /\.vercel\.app$/ // This allows all vercel.app subdomains
+    /\.vercel\.app$/  // ✅ This regex is good, but ensure it's actually working
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'] // ✅ Explicitly allow these
 }));
 
 app.use(express.json()); 

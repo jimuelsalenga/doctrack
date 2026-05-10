@@ -3,8 +3,9 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
-// ✅ Setup dynamic API URL (Fixed the fallback string)
-const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app/api';
+// ✅ FIXED: Point to your ACTUAL backend URL (the one that says "API is running")
+// We remove the "/api" from the end here because we add it in the axios call below.
+const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-nyuyd9e0y-jimuels-projects-b0ad682c.vercel.app';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -19,25 +20,25 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // ✅ Use API_BASE for the request
+            // ✅ FIXED: This now constructs: https://your-backend.vercel.app/api/auth/login
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
                 email: email.trim().toLowerCase(), 
                 password 
             });
 
             const data = res.data;
+            
+            // Handle different data structures safely
             const user = data.user || data;
-            const role = user.role || data.role;
+            const role = data.role || (data.user && data.user.role);
 
             // ✅ Store user data
             localStorage.setItem('token', data.token);
-            localStorage.setItem('name', user.name);
-            localStorage.setItem('userId', user.id || user._id || data.userId);
+            localStorage.setItem('name', data.name || (user && user.name));
+            localStorage.setItem('userId', data.userId || (user && (user.id || user._id)));
             localStorage.setItem('role', role);
-            localStorage.setItem('email', user.email || email.trim().toLowerCase()); 
-            localStorage.setItem('program', user.program || "N/A");
-            localStorage.setItem('yearLevel', user.yearLevel || "N/A");
-           
+            localStorage.setItem('email', data.email || email.trim().toLowerCase()); 
+            
             setMsg("✅ Login Successful! Redirecting...");
 
             setTimeout(() => {
@@ -50,7 +51,9 @@ const Login = () => {
 
         } catch (err) {
             console.error("Login Error:", err.response?.data);
-            setMsg(`❌ ${err.response?.data?.message || "Invalid email or password."}`);
+            // Handle cases where the server is down or returns a specific error message
+            const errorMsg = err.response?.data?.message || err.response?.data?.error || "Invalid email or password.";
+            setMsg(`❌ ${errorMsg}`);
         } finally {
             setLoading(false);
         }
