@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
-// ✅ FIXED: Point to your ACTUAL backend URL
-const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-taupe.vercel.app';
+// ✅ FIXED: Hardcoded to your permanent backend URL to prevent CORS/404 errors
+const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Register = () => {
     // Initializing with clean empty strings
@@ -12,7 +12,7 @@ const Register = () => {
         email: '', 
         password: '', 
         role: 'Requester', 
-        program: 'Bachelor of Elementary Education', // Set a default from your options
+        program: 'Bachelor of Elementary Education', 
         yearLevel: '1st Year' 
     });
     const [msg, setMsg] = useState('');
@@ -25,7 +25,7 @@ const Register = () => {
         setMsg(""); 
 
         try {
-            // ✅ FIXED: Use API_BASE and added /api prefix
+            // ✅ FIXED: Uses the hardcoded API_BASE
             const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
             setMsg("✅ " + res.data.message);
             
@@ -70,7 +70,7 @@ const Register = () => {
                         <option value="4th Year">4th Year</option>
                     </select>
 
-                    {/* Program - ✅ FIXED: Now updates 'program', not 'role' */}
+                    {/* Program */}
                     <select 
                         className="w-full border border-slate-300 p-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" 
                         value={formData.program}
@@ -82,7 +82,6 @@ const Register = () => {
                         <option value="BS in Computer Science">BS in Computer Science</option>
                         <option value="BS in Information Technology">BS in Information Technology</option>
                         <option value="BS in Nursing">BS in Nursing</option>
-                        {/* ... add others as needed ... */}
                     </select>
 
                     {/* Email */}

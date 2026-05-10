@@ -8,8 +8,8 @@ import {
 import Request from '../components/Request';
 
 const Dashboard = () => {
-  // Environment variable for API URL (Set this in Vercel Dashboard)
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app';
+  // ✅ FIXED: Hardcoded to your permanent backend URL to prevent CORS/404 errors
+  const API_BASE_URL = 'https://doctrack-taupe.vercel.app';
 
   const userName = localStorage.getItem('name') || "User";
   const userRole = localStorage.getItem('role') || "Requester";
@@ -229,7 +229,6 @@ const Dashboard = () => {
                   <ProfileField label="Student ID" value={userId} />
                   <ProfileField label="Account Status" value="Verified" isStatus />
                   <ProfileField label="Email" value={userEmail} />
-                  {/* Fixed: These variables are now used, clearing ESLint warnings */}
                   <ProfileField label="Program" value={userProgram} />
                   <ProfileField label="Year Level" value={userYear} />
                 </div>
