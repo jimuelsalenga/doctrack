@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['Requester', 'Admin'], default: 'Requester' }
+    role: { type: String, enum: ['Requester', 'Admin'], default: 'Requester' },
+    program: { type: String, default: 'N/A' },
+    yearLevel: { type: String, default: 'N/A' }
 });
 
 // ✅ MUST USE 'function' keyword, NOT an arrow function () => {}

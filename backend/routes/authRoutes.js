@@ -12,7 +12,7 @@ const bcrypt = require('bcryptjs');
  */
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+  const { name, email, password, role, program, yearLevel } = req.body;
     
     if (!name || !email || !password) {
       return res.status(400).json({ error: "Name, email and password are required" });
@@ -27,13 +27,7 @@ router.post('/register', async (req, res) => {
 
     // ✅ FIXED: We no longer hash here. 
     // Just pass the raw password; the User model's .pre('save') hook handles the hashing.
-    const user = new User({
-      name,
-      email: normalizedEmail,
-      password, 
-      role: role || 'Requester'
-    });
-
+const { name, email, password, role, program, yearLevel } = req.body;
     await user.save();
     res.status(201).json({ message: "User registered successfully!" });
   } catch (err) {
