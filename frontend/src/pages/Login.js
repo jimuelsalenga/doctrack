@@ -5,7 +5,7 @@ import neuLogo from '../assets/neu-logo.png';
 
 // ✅ FIXED: Point to your ACTUAL backend URL (the one that says "API is running")
 // We remove the "/api" from the end here because we add it in the axios call below.
-const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-nyuyd9e0y-jimuels-projects-b0ad682c.vercel.app';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-taupe.vercel.app';
 
 const Login = () => {
     const [email, setEmail] = useState('');
