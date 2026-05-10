@@ -6,23 +6,19 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 require('dotenv').config();
 
-// Remove the manual DNS override—Vercel handles its own networking.
-// const dns = require('dns');
-// dns.setServers(['8.8.8.8', '8.8.4.4']); 
-
 const app = express();
 
 // ====================== MIDDLEWARES ======================
+// ✅ FIX: Simplified and hardened CORS for Vercel
 app.use(cors({
-  origin: [
-    'https://doctrack-fend.vercel.app', 
-    'http://localhost:3000',
-    /\.vercel\.app$/  // ✅ This regex is good, but ensure it's actually working
-  ],
+  origin: '*', // Allows all origins to prevent Vercel preview URL blocks
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'] // ✅ Explicitly allow these
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
 }));
+
+// ✅ FIX: Explicitly handle preflight OPTIONS requests for all routes
+app.options('*', cors());
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
@@ -43,7 +39,7 @@ const swaggerOptions = {
     servers: [
       { 
         url: process.env.NODE_ENV === 'production' 
-          ? 'https://doctrack-taupe.vercel.app' // Replace with your backend URL
+          ? 'https://doctrack-taupe.vercel.app' 
           : `http://localhost:${process.env.PORT || 5000}`, 
         description: 'Server' 
       }
@@ -56,25 +52,30 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // ====================== DATABASE ======================
-// Use a variable to track connection status for serverless reuse
-let isConnected = false;
-
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  // ✅ FIX: More reliable check for Vercel's serverless environment
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
 
   try {
-    // ✅ Just pass the URI, no extra options needed!
+    // No deprecated options (useNewUrlParser, etc.), just the URI!
     await mongoose.connect(process.env.MONGO_URI); 
     console.log('✅ SUCCESS: Database Connected!');
   } catch (err) {
     console.error('❌ MongoDB Connection Error:', err.message);
+    throw err; // Ensure the app knows if the database fails
   }
 };
 
 // Middleware to ensure DB is connected before handling routes
 app.use(async (req, res, next) => {
-  await connectDB();
-  next();
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Database connection failed", error: error.message });
+  }
 });
 
 // ====================== ROUTES ======================
@@ -99,7 +100,6 @@ app.use((err, req, res, next) => {
 // ====================== SERVER ======================
 const PORT = process.env.PORT || 5000;
 
-// Standard listen for local development
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Local Server: http://localhost:${PORT}`);
