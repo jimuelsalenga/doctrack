@@ -10,17 +10,14 @@ const userSchema = new mongoose.Schema({
     yearLevel: { type: String, default: 'N/A' }
 });
 
-// ✅ MUST USE 'function' keyword, NOT an arrow function () => {}
+// Password hashing middleware
 userSchema.pre('save', async function () {
-    // If the password hasn't been changed, just exit the function
     if (!this.isModified('password')) return;
 
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-        // No need to call next() here; finishing the function resolves the hook
     } catch (err) {
-        // Instead of next(err), just throw the error
         throw err;
     }
 });
