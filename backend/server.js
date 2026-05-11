@@ -9,14 +9,15 @@ require('dotenv').config();
 const app = express();
 
 // ====================== MIDDLEWARES ======================
-// ✅ FIX: Dynamic CORS origin to satisfy browser 'credentials: true' rules
+// ✅ FIX: Explicit array of origins is much safer for Vercel
+const allowedOrigins = [
+  'https://doctrack-fend.vercel.app', 
+  'http://localhost:3000', // For local React testing
+  'http://localhost:5173'  // For local Vite testing
+];
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like Postman or mobile apps)
-    if (!origin) return callback(null, true);
-    // Dynamically allow the requesting origin (perfect for Vercel preview URLs)
-    return callback(null, origin); 
-  },
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
@@ -82,7 +83,7 @@ app.use(async (req, res, next) => {
 // ====================== ROUTES ======================
 app.get('/health', (req, res) => res.send('API is running...'));
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/docs', require('./routes/docRoutes'));
+app.use('/api/docs', require('./routes/docRoutes')); // Make sure this matches your folder exactly
 
 // ====================== GLOBAL ERROR HANDLER ======================
 app.use((err, req, res, next) => {
