@@ -10,7 +10,10 @@ router.post('/register', async (req, res) => {
         const normalizedEmail = email.toLowerCase().trim();
 
         const userExists = await User.findOne({ email: normalizedEmail });
-        if (userExists) return res.status(400).json({ message: "User already exists" });
+        if (userExists) {
+            console.log(`[Register] Failed: User ${normalizedEmail} already exists.`);
+            return res.status(400).json({ message: "User already exists" });
+        }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -25,9 +28,10 @@ router.post('/register', async (req, res) => {
         });
 
         await newUser.save();
+        console.log(`[Register] Success: Registered new user ${normalizedEmail}`);
         res.status(201).json({ message: "User registered successfully!" });
     } catch (err) {
-        console.error("Registration Error:", err);
+        console.error("[Register] Error:", err);
         res.status(500).json({ message: "Registration failed", error: err.message });
     }
 });
@@ -36,6 +40,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        
         if (!email || !password) {
             return res.status(400).json({ message: "Please enter all fields" });
         }
@@ -44,9 +49,11 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
+            console.log(`[Login] Failed: No user found for email ${normalizedEmail}`);
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
+        // Compare the submitted password with the hashed password in the database
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
@@ -55,7 +62,8 @@ router.post('/login', async (req, res) => {
                 process.env.JWT_SECRET || 'secret123',
                 { expiresIn: '1h' }
             );
-
+            
+            console.log(`[Login] Success: User ${normalizedEmail} logged in.`);
             res.json({
                 token,
                 role: user.role,
@@ -66,20 +74,22 @@ router.post('/login', async (req, res) => {
                 userId: user._id.toString()
             });
         } else {
+            console.log(`[Login] Failed: Incorrect password for ${normalizedEmail}`);
             res.status(401).json({ message: "Invalid email or password" });
         }
     } catch (err) {
-        console.error("Login Error:", err);
+        console.error("[Login] Server Error:", err);
         res.status(500).json({ message: "Server error during login" });
     }
 });
 
+// --- FETCH USERS ROUTE ---
 router.get('/users', async (req, res) => {
     try {
         const users = await User.find().select('-password'); 
         res.status(200).json(users);
     } catch (err) {
-        console.error("Fetch Users Error:", err);
+        console.error("[Fetch Users] Error:", err);
         res.status(500).json({ message: "Failed to fetch users", error: err.message });
     }
 });
