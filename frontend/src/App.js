@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -11,8 +11,8 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-100">
         <Routes>
-          {/* Default Route - Login Page */}
-          <Route path="/login" element={<Login />} />
+          {/* Default Route - Redirects the blank root url (/) directly to /login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Login & Register */}
           <Route path="/login" element={<Login />} />
@@ -24,8 +24,8 @@ function App() {
           {/* Admin Dashboard */}
           <Route path="/admin" element={<AdminDashboard />} />
 
-          {/* Optional: Catch-all route for 404 */}
-          <Route path="*" element={<Login />} />
+          {/* Catch-all route - If a user types a weird URL, send them back to Login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </Router>

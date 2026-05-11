@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
-// ✅ STRICT FIX: We are hardcoding the exact backend URL to bypass any broken Vercel environment variables.
 const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Login = () => {
@@ -19,9 +18,10 @@ const Login = () => {
         setLoading(true);
 
         try {
+            // ✅ FIX: Added .trim() to the password to destroy accidental copy-paste spaces!
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
                 email: email.trim().toLowerCase(), 
-                password 
+                password: password.trim() 
             });
 
             const data = res.data;
