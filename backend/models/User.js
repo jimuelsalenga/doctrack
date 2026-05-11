@@ -8,8 +8,8 @@ const userSchema = new mongoose.Schema({
     program: { type: String, default: 'N/A' },
     yearLevel: { type: String, default: 'N/A' }
 }, { 
-    // Adds createdAt and updatedAt dates automatically
-    timestamps: true 
+    timestamps: true,
+    collection: 'users' // ✅ FORCES Mongoose to look in the 'users' collection
 });
 
 module.exports = mongoose.model('User', userSchema);
