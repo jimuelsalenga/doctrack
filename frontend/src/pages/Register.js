@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
-// ✅ FIXED: Hardcoded to your permanent backend URL to prevent CORS/404 errors
 const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Register = () => {
-    // Initializing with clean empty strings
     const [formData, setFormData] = useState({ 
         name: '', 
         email: '', 
@@ -25,7 +23,6 @@ const Register = () => {
         setMsg(""); 
 
         try {
-            // ✅ FIXED: Uses the hardcoded API_BASE
             const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
             setMsg("✅ " + res.data.message);
             
@@ -49,7 +46,6 @@ const Register = () => {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Name */}
                     <input 
                         className="w-full border border-slate-300 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
                         placeholder="Full Name" 
@@ -58,7 +54,6 @@ const Register = () => {
                         required 
                     />
 
-                    {/* Year Level */}
                     <select 
                          className="w-full border border-slate-300 p-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" 
                          value={formData.yearLevel}
@@ -70,7 +65,6 @@ const Register = () => {
                         <option value="4th Year">4th Year</option>
                     </select>
 
-                    {/* Program */}
                     <select 
                         className="w-full border border-slate-300 p-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" 
                         value={formData.program}
@@ -84,7 +78,6 @@ const Register = () => {
                         <option value="BS in Nursing">BS in Nursing</option>
                     </select>
 
-                    {/* Email */}
                     <input 
                         className="w-full border border-slate-300 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
                         type="email" 
@@ -94,7 +87,6 @@ const Register = () => {
                         required 
                     />
 
-                    {/* Password */}
                     <input 
                         className="w-full border border-slate-300 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" 
                         type="password" 
@@ -104,7 +96,6 @@ const Register = () => {
                         required 
                     />
 
-                    {/* Account Type (Role) */}
                     <select 
                         className="w-full border border-slate-300 p-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" 
                         value={formData.role}

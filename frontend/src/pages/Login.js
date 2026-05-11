@@ -3,9 +3,8 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
-// ✅ FIXED: Point to your ACTUAL backend URL (the one that says "API is running")
-// We remove the "/api" from the end here because we add it in the axios call below.
-const API_BASE = process.env.REACT_APP_API_URL || 'https://doctrack-taupe.vercel.app';
+// ✅ STRICT FIX: We are hardcoding the exact backend URL to bypass any broken Vercel environment variables.
+const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +19,6 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // ✅ FIXED: This now constructs: https://your-backend.vercel.app/api/auth/login
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
                 email: email.trim().toLowerCase(), 
                 password 
@@ -28,11 +26,9 @@ const Login = () => {
 
             const data = res.data;
             
-            // Handle different data structures safely
             const user = data.user || data;
             const role = data.role || (data.user && data.user.role);
 
-            // ✅ Store user data
             localStorage.setItem('token', data.token);
             localStorage.setItem('name', data.name || (user && user.name));
             localStorage.setItem('userId', data.userId || (user && (user.id || user._id)));
@@ -51,7 +47,6 @@ const Login = () => {
 
         } catch (err) {
             console.error("Login Error:", err.response?.data);
-            // Handle cases where the server is down or returns a specific error message
             const errorMsg = err.response?.data?.message || err.response?.data?.error || "Invalid email or password.";
             setMsg(`❌ ${errorMsg}`);
         } finally {

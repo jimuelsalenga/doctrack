@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
   Search, Eye, CheckCircle, XCircle, LogOut, LayoutDashboard,
   Settings, User, Mail, Clock, Hash, FileText, X, RotateCcw, Info
@@ -16,11 +17,13 @@ const AdminDashboard = () => {
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [toast, setToast] = useState(null);
 
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const adminName = localStorage.getItem('name') || "Admin";
 
+  // ✅ FIXED: Pointing to your actual backend URL, not the frontend URL
   const axiosAuth = useMemo(() => axios.create({
-    baseURL: 'https://doctrack-fend.vercel.app/api',
+    baseURL: 'https://doctrack-taupe.vercel.app/api',
     headers: { Authorization: `Bearer ${token}` }
   }), [token]);
 
@@ -32,20 +35,19 @@ const AdminDashboard = () => {
   const fetchRequests = useCallback(async () => {
     setLoading(true);
     try {
-      // Changed to /docs/all to match server.js prefix
       const res = await axiosAuth.get('/docs/all');
       setRequests(res.data || []);
     } catch (err) {
       if (err.response?.status === 401) {
         localStorage.clear();
-        window.location.href = '/login';
+        navigate('/login');
       } else {
         showToast("Failed to fetch requests", "error");
       }
     } finally {
       setLoading(false);
     }
-  }, [axiosAuth]);
+  }, [axiosAuth, navigate]);
 
   useEffect(() => {
     fetchRequests();
@@ -61,7 +63,6 @@ const AdminDashboard = () => {
 
   const handleUpdateStatus = async (id, newStatus, remarks = "") => {
     try {
-      // Logic Fix: Sending data to /docs/status/:id as defined in backend
       await axiosAuth.patch(`/docs/status/${id}`, { 
         status: newStatus, 
         remarks: remarks || `Request marked as ${newStatus} by ${adminName}`
@@ -73,6 +74,15 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Update Error:", err.response?.data);
       showToast(err.response?.data?.message || "Update failed", "error");
+    }
+  };
+
+  // ✅ FIXED: Cleaner logout function using React Router
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to sign out?")) {
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate('/login');
     }
   };
 
@@ -90,8 +100,8 @@ const AdminDashboard = () => {
     return [...filtered].sort((a, b) => {
       let valA = a[sortConfig.key], valB = b[sortConfig.key];
       if (sortConfig.key === 'createdAt' || sortConfig.key === 'submittedAt') {
-        valA = new Date(valA).getTime();
-        valB = new Date(valB).getTime();
+        valA = new Date(valA || 0).getTime(); // Fallback if date is missing
+        valB = new Date(valB || 0).getTime();
       }
       return sortConfig.direction === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
     });
@@ -135,7 +145,7 @@ const AdminDashboard = () => {
               <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Administrator</p>
             </div>
           </div>
-          <button onClick={() => window.confirm("Sign out?") && (localStorage.clear() || (window.location.href = '/login'))} className="w-full flex items-center gap-3 px-4 py-3 text-rose-600 hover:bg-rose-50 rounded-2xl font-bold transition-all text-sm">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-rose-600 hover:bg-rose-50 rounded-2xl font-bold transition-all text-sm">
             <LogOut size={18} /> Sign Out
           </button>
         </div>
@@ -163,7 +173,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex justify-between items-center mb-6 gap-4">
-              <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-white shadow-sm">
+              <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-white shadow-sm overflow-x-auto">
                 {['All', 'Pending', 'Approved', 'Ready', 'Rejected'].map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
                     {tab}
@@ -180,9 +190,9 @@ const AdminDashboard = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-8 py-5 cursor-pointer" onClick={() => requestSort('requesterName')}>Student & ID</th>
+                    <th className="px-8 py-5 cursor-pointer hover:text-blue-500" onClick={() => requestSort('requesterName')}>Student & ID</th>
                     <th className="px-6 py-5">Document Type</th>
-                    <th className="px-6 py-5 cursor-pointer" onClick={() => requestSort('createdAt')}>Submitted</th>
+                    <th className="px-6 py-5 cursor-pointer hover:text-blue-500" onClick={() => requestSort('createdAt')}>Submitted</th>
                     <th className="px-6 py-5">Status</th>
                     <th className="px-8 py-5 text-right">Action</th>
                   </tr>
@@ -193,7 +203,7 @@ const AdminDashboard = () => {
                   ) : filteredAndSortedData.map(req => (
                     <tr key={req._id} className="hover:bg-white/80 transition-colors group">
                       <td className="px-8 py-5">
-                        <p className="font-bold text-slate-800 text-sm">{req.requesterName}</p>
+                        <p className="font-bold text-slate-800 text-sm">{req.requesterName || "Unknown Student"}</p>
                         <p className="text-[10px] font-mono text-blue-500 font-bold">#{req._id?.slice(-8).toUpperCase()}</p>
                       </td>
                       <td className="px-6 py-5 text-sm font-bold text-slate-600">{req.documentType}</td>
@@ -235,9 +245,9 @@ const AdminDashboard = () => {
               </div>
 
               <div className="space-y-4 mb-10">
-                <DetailItem icon={<User size={18}/>} label="Student" value={selectedRequest.requesterName} />
+                <DetailItem icon={<User size={18}/>} label="Student" value={selectedRequest.requesterName || "Unknown Student"} />
                 <DetailItem icon={<Hash size={18}/>} label="System Tracking ID" value={selectedRequest._id} />
-                <DetailItem icon={<Mail size={18}/>} label="Email Address" value={selectedRequest.requesterEmail || selectedRequest.userEmail} />
+                <DetailItem icon={<Mail size={18}/>} label="Email Address" value={selectedRequest.requesterEmail || selectedRequest.userEmail || "N/A"} />
                 <DetailItem icon={<FileText size={18}/>} label="Document" value={selectedRequest.documentType} />
                 <DetailItem icon={<Clock size={18}/>} label="Submitted On" value={new Date(selectedRequest.createdAt || selectedRequest.submittedAt).toLocaleString()} />
                 {selectedRequest.remarks && (
@@ -248,7 +258,7 @@ const AdminDashboard = () => {
                 )}
               </div>
 
-              {/* Action Buttons with Improved Logic */}
+              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-4">
                 {selectedRequest.status === 'Pending' ? (
                   <>
@@ -325,9 +335,9 @@ const StatusBadge = ({ status }) => {
 const DetailItem = ({ icon, label, value }) => (
   <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100">
     <div className="text-slate-400">{icon}</div>
-    <div>
+    <div className="flex-1 overflow-hidden">
       <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-1">{label}</p>
-      <p className="text-sm font-bold text-slate-700 leading-none">{value}</p>
+      <p className="text-sm font-bold text-slate-700 leading-none truncate" title={value}>{value}</p>
     </div>
   </div>
 );

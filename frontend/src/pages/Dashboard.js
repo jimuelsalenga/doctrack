@@ -8,7 +8,6 @@ import {
 import Request from '../components/Request';
 
 const Dashboard = () => {
-  // ✅ FIXED: Hardcoded to your permanent backend URL to prevent CORS/404 errors
   const API_BASE_URL = 'https://doctrack-taupe.vercel.app';
 
   const userName = localStorage.getItem('name') || "User";
@@ -26,7 +25,6 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // AUTH GUARD: Prevent unauthorized access
   useEffect(() => {
     if (!token) {
       window.location.replace('/login');
@@ -81,7 +79,6 @@ const Dashboard = () => {
     );
   }, [requests, searchTerm]);
 
-  // --- COUNTER LOGIC ---
   const activeCount = requests.filter(r => 
     ['Pending', 'Under Review'].includes(r.status)
   ).length;
@@ -111,7 +108,7 @@ const Dashboard = () => {
           <div className="font-black text-2xl tracking-tighter text-slate-800">DocTrack</div>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-2">
           <NavItem icon={<LayoutDashboard size={20} />} label="Dashboard" active={activeTab === 'Dashboard'} onClick={() => setActiveTab('Dashboard')} />
           <NavItem icon={<Clock size={20} />} label="My Requests" active={activeTab === 'My Requests'} onClick={() => setActiveTab('My Requests')} />
           <NavItem icon={<User size={20} />} label="Profile" active={activeTab === 'Profile'} onClick={() => setActiveTab('Profile')} />
@@ -138,7 +135,7 @@ const Dashboard = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
-              placeholder="Search tracking ID..." 
+              placeholder="Search document type or ID..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-slate-100 border-transparent focus:bg-white focus:border-blue-500 rounded-2xl text-sm outline-none transition-all font-medium" 
@@ -225,8 +222,8 @@ const Dashboard = () => {
                 <img className="w-32 h-32 rounded-3xl mx-auto mb-6 ring-4 ring-blue-50" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3b82f6&color=fff&size=128&bold=true`} alt="profile" />
                 <h2 className="text-3xl font-black text-slate-900">{userName}</h2>
                 <p className="text-blue-500 font-black uppercase tracking-widest text-xs mt-2">{userRole}</p>
-                <div className="mt-10 grid grid-cols-1 gap-4 text-left">
-                  <ProfileField label="Student ID" value={userId} />
+                <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                  <ProfileField label="Student ID" value={userId?.slice(-6).toUpperCase() || 'N/A'} />
                   <ProfileField label="Account Status" value="Verified" isStatus />
                   <ProfileField label="Email" value={userEmail} />
                   <ProfileField label="Program" value={userProgram} />
@@ -260,9 +257,17 @@ const Dashboard = () => {
 // --- Sub-components ---
 
 const NavItem = ({ icon, label, active = false, onClick }) => (
-  <button onClick={onClick} className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl font-black transition-all group ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
-    <div className="flex items-center gap-4">{icon} <span className="text-sm uppercase tracking-widest">{label}</span></div>
-    {active && <ChevronRight size={16} />}
+  <button 
+    onClick={onClick} 
+    className={`w-full flex items-center px-4 py-3 rounded-2xl font-black transition-all ${
+      active ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+    }`}
+  >
+    <div className="flex items-center gap-4 w-full">
+      {icon} 
+      <span className="text-sm uppercase tracking-widest flex-grow text-left">{label}</span>
+      {active && <ChevronRight size={16} />}
+    </div>
   </button>
 );
 
@@ -294,7 +299,7 @@ const StatCard = ({ title, count, color, icon, status }) => {
 const ProfileField = ({ label, value, isStatus }) => (
   <div className="p-4 bg-slate-50 rounded-2xl">
     <p className="text-[10px] font-black text-slate-400 uppercase">{label}</p>
-    <p className={`font-bold ${isStatus ? 'text-emerald-600' : 'text-slate-700'}`}>{value}</p>
+    <p className={`font-bold mt-1 ${isStatus ? 'text-emerald-600' : 'text-slate-700'}`}>{value}</p>
   </div>
 );
 
@@ -307,6 +312,7 @@ const RequestItem = ({ req, onEdit }) => {
     "Under Review": "bg-amber-100 text-amber-700", 
     "Ready for Pickup": "bg-blue-100 text-blue-700", 
     "Ready": "bg-blue-100 text-blue-700",
+    "Completed": "bg-slate-800 text-white",
     "Rejected": "bg-rose-100 text-rose-700", 
     "Pending": "bg-slate-100 text-slate-700" 
   };
@@ -317,16 +323,16 @@ const RequestItem = ({ req, onEdit }) => {
   };
 
   return (
-    <div className="group flex flex-col p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+    <div className="group flex flex-col p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all bg-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
-          <div className="w-12 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors shadow-sm">
+          <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:border-blue-200 transition-colors shadow-sm">
             <FileText size={20} />
           </div>
           <div>
             <p className="font-bold text-slate-800">{documentType}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-mono font-bold text-blue-500">#{_id.slice(-6).toUpperCase()}</span>
+              <span className="text-[10px] font-mono font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md">#{_id?.slice(-6).toUpperCase()}</span>
               <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{date}</span>
             </div>
           </div>
@@ -338,12 +344,10 @@ const RequestItem = ({ req, onEdit }) => {
           </span>
           
           {status === 'Pending' && (
-            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit Request">
               <Edit3 size={18} />
             </button>
           )}
-          
-          <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-400" />
         </div>
       </div>
       
