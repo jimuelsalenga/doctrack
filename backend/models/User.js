@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     yearLevel: { type: String, default: 'N/A' }
 }, { 
     timestamps: true,
-    collection: 'users' // ✅ FORCES Mongoose to look in the 'users' collection
+    collection: 'Users' // ✅ FORCES Mongoose to look in the 'users' collection
 });
 
 module.exports = mongoose.model('User', userSchema);
