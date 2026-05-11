@@ -9,22 +9,25 @@ require('dotenv').config();
 const app = express();
 
 // ====================== MIDDLEWARES ======================
-// ✅ FIX: Simplified and hardened CORS for Vercel
+// ✅ FIX: Dynamic CORS origin to satisfy browser 'credentials: true' rules
 app.use(cors({
-  origin: '*', // Allows all origins to prevent Vercel preview URL blocks
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman or mobile apps)
+    if (!origin) return callback(null, true);
+    // Dynamically allow the requesting origin (perfect for Vercel preview URLs)
+    return callback(null, origin); 
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
 }));
 
-// ✅ FIX: Explicitly handle preflight OPTIONS requests for all routes
+// Explicitly handle preflight OPTIONS requests
 app.options('*', cors());
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// ⚠️ WARNING: Local 'uploads' will not persist on Vercel. 
-// Files uploaded here will disappear after a few minutes.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ====================== SWAGGER CONFIG ======================
@@ -53,18 +56,16 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // ====================== DATABASE ======================
 const connectDB = async () => {
-  // ✅ FIX: More reliable check for Vercel's serverless environment
   if (mongoose.connections[0].readyState) {
     return;
   }
 
   try {
-    // No deprecated options (useNewUrlParser, etc.), just the URI!
     await mongoose.connect(process.env.MONGO_URI); 
     console.log('✅ SUCCESS: Database Connected!');
   } catch (err) {
     console.error('❌ MongoDB Connection Error:', err.message);
-    throw err; // Ensure the app knows if the database fails
+    throw err; 
   }
 };
 
@@ -106,5 +107,4 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// ✅ CRITICAL: Export the app for Vercel
 module.exports = app;
