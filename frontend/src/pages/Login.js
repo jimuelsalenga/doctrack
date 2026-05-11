@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
+// ✅ Ensure this does NOT have a trailing slash
 const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Login = () => {
@@ -17,38 +18,50 @@ const Login = () => {
         setMsg("");
         setLoading(true);
 
+        // 🔍 DEBUG: Log what we are sending
+        console.log("Attempting login for:", email.trim().toLowerCase());
+
         try {
-            // ✅ FIX: Added .trim() to the password to destroy accidental copy-paste spaces!
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
                 email: email.trim().toLowerCase(), 
                 password: password.trim() 
             });
 
-            const data = res.data;
-            
-            const user = data.user || data;
-            const role = data.role || (data.user && data.user.role);
+            // 🔍 DEBUG: Log exactly what the server sent back
+            console.log("Server Response Data:", res.data);
 
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('name', data.name || (user && user.name));
-            localStorage.setItem('userId', data.userId || (user && (user.id || user._id)));
+            const { token, role, name, userId } = res.data;
+
+            // ✅ Store the data
+            localStorage.setItem('token', token);
             localStorage.setItem('role', role);
-            localStorage.setItem('email', data.email || email.trim().toLowerCase()); 
+            localStorage.setItem('name', name);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('email', email.trim().toLowerCase()); 
             
             setMsg("✅ Login Successful! Redirecting...");
 
+            // Redirect based on role
             setTimeout(() => {
                 if (role === 'Admin') {
                     navigate('/admin');
                 } else {
                     navigate('/dashboard');
                 }
-            }, 1000);
+            }, 1500);
 
         } catch (err) {
-            console.error("Login Error:", err.response?.data);
-            const errorMsg = err.response?.data?.message || err.response?.data?.error || "Invalid email or password.";
-            setMsg(`❌ ${errorMsg}`);
+            console.error("Full Error Object:", err);
+
+            if (!err.response) {
+                // 🚨 THIS IS THE CORS FIX: 
+                // If there is no response, it's usually a CORS or Connection issue
+                setMsg("❌ Network Error: The browser blocked the connection (CORS). Check server logs.");
+            } else {
+                // This is an actual 401 or 400 error from the backend
+                const errorMsg = err.response?.data?.message || "Invalid email or password.";
+                setMsg(`❌ ${errorMsg}`);
+            }
         } finally {
             setLoading(false);
         }

@@ -14,17 +14,26 @@ const allowedOrigins = [
   'http://localhost:5173'
 ];
 
+// ====================== MIDDLEWARES ======================
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost:') || origin.endsWith('.vercel.app')) {
-      return callback(null, origin);
+    
+    // Allow anything that is localhost or ends with .vercel.app
+    const isLocal = origin.startsWith('http://localhost:');
+    const isVercel = origin.endsWith('.vercel.app');
+    
+    if (isLocal || isVercel) {
+      callback(null, true);
+    } else {
+      console.log("CORS Blocked Origin:", origin);
+      callback(new Error('Not allowed by CORS'));
     }
-    return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.options('*', cors());
