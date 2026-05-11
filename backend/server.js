@@ -16,8 +16,19 @@ const allowedOrigins = [
   'http://localhost:5173'  // For local Vite testing
 ];
 
+// ====================== MIDDLEWARES ======================
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost OR any URL that ends with .vercel.app
+    if (origin.startsWith('http://localhost:') || origin.endsWith('.vercel.app')) {
+      return callback(null, origin);
+    }
+    
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
