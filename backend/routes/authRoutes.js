@@ -1,15 +1,8 @@
 const router = require('express').Router();
-const User = require('../models/User'); // Ensure file is named User.js or update to lowercase
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-/**
- * @swagger
- * /api/auth/register:
- * post:
- * summary: Register a new user
- * tags: [Authentication]
- */
 router.post('/register', async (req, res) => {
     try {
         const { name, email, password, role, program, yearLevel } = req.body;
@@ -19,17 +12,16 @@ router.post('/register', async (req, res) => {
         }
 
         const normalizedEmail = email.toLowerCase().trim();
-        let existingUser = await User.findOne({ email: normalizedEmail });
+        const existingUser = await User.findOne({ email: normalizedEmail });
 
         if (existingUser) {
             return res.status(400).json({ error: "Email already exists" });
         }
 
-        // ✅ FIXED: Actually create the user object before trying to save it
         const user = new User({
             name,
             email: normalizedEmail,
-            password, // Hashing happens in User.js pre-save hook
+            password, // Plain password — pre-save hook in User.js handles hashing
             role: role || 'Requester',
             program: program || 'N/A',
             yearLevel: yearLevel || 'N/A'
@@ -39,17 +31,10 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ message: "User registered successfully!" });
     } catch (err) {
         console.error("Registration Error:", err);
-        res.status(400).json({ error: "Registration failed", message: err.message });
+        res.status(500).json({ error: "Registration failed", message: err.message });
     }
 });
 
-/**
- * @swagger
- * /api/auth/login:
- * post:
- * summary: Log in to get an authentication token
- * tags: [Authentication]
- */
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -73,7 +58,6 @@ router.post('/login', async (req, res) => {
                 yearLevel: user.yearLevel
             });
         } else {
-            // Candor: Better to keep the message vague for security
             res.status(401).json({ message: "Invalid email or password" });
         }
     } catch (err) {

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import neuLogo from '../assets/neu-logo.png';
 
-// ✅ Base URL for your API
+// ✅ Ensure this does NOT have a trailing slash
 const API_BASE = 'https://doctrack-taupe.vercel.app';
 
 const Login = () => {
@@ -19,30 +19,25 @@ const Login = () => {
         setLoading(true);
 
         // 🔍 DEBUG: Log what we are sending
-        const cleanEmail = email.trim().toLowerCase();
-        console.log("Attempting login for:", cleanEmail);
+        console.log("Attempting login for:", email.trim().toLowerCase());
 
         try {
             const res = await axios.post(`${API_BASE}/api/auth/login`, { 
-                email: cleanEmail, 
+                email: email.trim().toLowerCase(), 
                 password: password.trim() 
             });
 
             // 🔍 DEBUG: Log exactly what the server sent back
             console.log("Server Response Data:", res.data);
 
-            const { token, role, name, userId, program, yearLevel } = res.data;
+            const { token, role, name, userId } = res.data;
 
-            // ✅ Store the data securely
+            // ✅ Store the data
             localStorage.setItem('token', token);
             localStorage.setItem('role', role);
             localStorage.setItem('name', name);
             localStorage.setItem('userId', userId);
-            localStorage.setItem('email', cleanEmail);
-            
-            // Store academic info if provided (useful for profile/forms)
-            if (program) localStorage.setItem('program', program);
-            if (yearLevel) localStorage.setItem('yearLevel', yearLevel);
+            localStorage.setItem('email', email.trim().toLowerCase()); 
             
             setMsg("✅ Login Successful! Redirecting...");
 
@@ -53,20 +48,18 @@ const Login = () => {
                 } else {
                     navigate('/dashboard');
                 }
-            }, 1200);
+            }, 1500);
 
         } catch (err) {
             console.error("Full Error Object:", err);
 
             if (!err.response) {
-                // Network error or CORS issue
-                setMsg("❌ Network Error: Cannot reach the server. Please check your internet or server status.");
-            } else if (err.response.status === 401) {
-                // Specific 401 handle (This is what you were seeing)
-                setMsg("❌ Invalid email or password. Please try again.");
+                // 🚨 THIS IS THE CORS FIX: 
+                // If there is no response, it's usually a CORS or Connection issue
+                setMsg("❌ Network Error: The browser blocked the connection (CORS). Check server logs.");
             } else {
-                // Other server-side errors
-                const errorMsg = err.response?.data?.message || "Something went wrong. Please try again later.";
+                // This is an actual 401 or 400 error from the backend
+                const errorMsg = err.response?.data?.message || "Invalid email or password.";
                 setMsg(`❌ ${errorMsg}`);
             }
         } finally {
@@ -75,20 +68,17 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
             <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md">
                 <div className="flex flex-col items-center mb-8">
-                    <img src={neuLogo} alt="NEU Logo" className="w-20 h-20 mb-4 object-contain" />
+                    <img src={neuLogo} alt="NEU Logo" className="w-20 h-20 mb-4" />
                     <h2 className="text-3xl font-extrabold text-slate-800">DocTrack</h2>
                     <p className="text-slate-500 font-medium">Sign in to your account</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-6">
-                    {/* Email Input */}
                     <div>
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                            Email Address
-                        </label>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
                         <input 
                             type="email" 
                             required
@@ -99,11 +89,8 @@ const Login = () => {
                         />
                     </div>
 
-                    {/* Password Input */}
                     <div>
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                            Password
-                        </label>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Password</label>
                         <input 
                             type="password" 
                             required
@@ -114,37 +101,24 @@ const Login = () => {
                         />
                     </div>
 
-                    {/* Submit Button */}
                     <button 
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-xl active:scale-95 ${
-                            loading 
-                            ? 'bg-slate-400 shadow-none cursor-not-allowed' 
-                            : 'bg-blue-600 hover:bg-blue-700 shadow-blue-100 hover:shadow-blue-200'
-                        }`}
+                        className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-xl active:scale-95 ${loading ? 'bg-slate-400 shadow-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-100 hover:shadow-blue-200'}`}
                     >
                         {loading ? "Authenticating..." : "Sign In"}
                     </button>
                 </form>
 
-                {/* Feedback Message */}
                 {msg && (
-                    <div className={`mt-6 text-center p-4 rounded-2xl text-xs font-black uppercase tracking-wider animate-pulse ${
-                        msg.includes('✅') 
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                        : 'bg-rose-50 text-rose-600 border border-rose-100'
-                    }`}>
+                    <div className={`mt-6 text-center p-4 rounded-2xl text-xs font-black uppercase tracking-wider ${msg.includes('✅') ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                         {msg}
                     </div>
                 )}
 
                 <div className="mt-10 pt-8 border-t border-slate-100 text-center">
                     <p className="text-slate-500 text-sm font-medium">
-                        Don't have an account? 
-                        <Link to="/register" className="text-blue-600 font-black hover:underline ml-1">
-                            Register Now
-                        </Link>
+                        Don't have an account? <Link to="/register" className="text-blue-600 font-black hover:underline ml-1">Register Now</Link>
                     </p>
                 </div>
             </div>
