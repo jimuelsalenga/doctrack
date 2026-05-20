@@ -15,9 +15,9 @@ const Dashboard = () => {
   const userRole = localStorage.getItem('role') || "Requester";
   const userId = localStorage.getItem('userId');
   const token = localStorage.getItem('token');
-  const userEmail = localStorage.getItem('email') || "N/A";
-  const userProgram = localStorage.getItem('program') || "N/A";
-  const userYear = localStorage.getItem('yearLevel') || "N/A";
+  const userEmail = localStorage.getItem('email') || "{userEmail}";
+  const userProgram = localStorage.getItem('program') || "userProgram";
+  const userYear = localStorage.getItem('yearLevel') || "userYear";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
