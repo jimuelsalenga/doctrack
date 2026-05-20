@@ -1,12 +1,10 @@
 const Request = require('../models/Request');
 
-// Get all requests (Filtered by role)
 exports.getAllRequests = async (req, res) => {
     try {
         const { role, userId } = req.query;
         let query = {};
 
-        // If requester, only show their own documents
         if (role === 'Requester') {
             if (!userId) return res.status(400).json({ message: "User ID is required" });
             query = { requester: userId };
@@ -19,24 +17,17 @@ exports.getAllRequests = async (req, res) => {
     }
 };
 
-// Update request status (Admin action)
 exports.updateRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks } = req.body; 
+        const { status, remarks } = req.body;
 
         const updatedRequest = await Request.findByIdAndUpdate(
             id,
             { 
                 status, 
                 remarks, 
-                $push: { 
-                    statusHistory: { 
-                        status, 
-                        remarks, 
-                        changedAt: new Date() 
-                    } 
-                } 
+                $push: { statusHistory: { status, remarks, changedAt: new Date() } } 
             },
             { new: true, runValidators: true }
         );
@@ -48,7 +39,6 @@ exports.updateRequestStatus = async (req, res) => {
     }
 };
 
-// Create new request
 exports.createRequest = async (req, res) => {
     try {
         const { requester, requesterName, requesterEmail, documentType, description, program, yearLevel } = req.body;
@@ -63,12 +53,10 @@ exports.createRequest = async (req, res) => {
             requesterEmail,
             documentType,
             description,
-            // Capture these from the frontend state
             program: program || 'N/A',
             yearLevel: yearLevel || 'N/A',
             fileName: req.file ? req.file.filename : null,
-            // NOTE: On Vercel, this path in /tmp is temporary!
-            filePath: req.file ? req.file.path : null, 
+            filePath: req.file ? req.file.path : null,
             status: 'Pending'
         });
 
@@ -79,7 +67,6 @@ exports.createRequest = async (req, res) => {
     }
 };
 
-// Update request content (User Edit)
 exports.updateRequestContent = async (req, res) => {
     try {
         const { documentType, description } = req.body;
@@ -91,11 +78,11 @@ exports.updateRequestContent = async (req, res) => {
         }
 
         const updatedDoc = await Request.findByIdAndUpdate(
-            req.params.id, 
-            updateData, 
+            req.params.id,
+            updateData,
             { new: true }
         );
-        
+
         if (!updatedDoc) return res.status(404).json({ message: "Document not found" });
         res.json(updatedDoc);
     } catch (err) {

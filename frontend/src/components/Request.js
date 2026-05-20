@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Upload, X } from 'lucide-react';
 
 const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
-  // Use environment variable for API URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://doctrack-fend.vercel.app';
+  // ✅ FIXED: fallback now points to backend, not frontend
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://doctrack-taupe.vercel.app';
 
   const [documentType, setDocumentType] = useState('');
   const [description, setDescription] = useState('');
@@ -20,7 +20,7 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
     if (initialData && isOpen) {
       setDocumentType(initialData.documentType || '');
       setDescription(initialData.description || '');
-      setFile(null); 
+      setFile(null);
     } else if (!initialData && isOpen) {
       resetForm();
     }
@@ -35,7 +35,6 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic Validation
     if (!documentType || (!initialData && !file)) {
       alert("Please provide all required fields.");
       return;
@@ -47,12 +46,12 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
     const userName = localStorage.getItem('name');
     const userProgram = localStorage.getItem('program');
     const userYear = localStorage.getItem('yearLevel');
-    
+
     const isEdit = !!initialData;
 
     if (!isEdit && (!userId || !userEmail)) {
-        alert("User session error. Please log in again.");
-        return;
+      alert("User session error. Please log in again.");
+      return;
     }
 
     setLoading(true);
@@ -61,27 +60,25 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
       const formData = new FormData();
       formData.append('documentType', documentType);
       formData.append('description', description || '');
-      
-      // Syncing all user info to the backend request record
       formData.append('requester', userId);
       formData.append('requesterName', userName || "Student");
-      formData.append('email', userEmail); 
-      formData.append('requesterProgram', userProgram || "N/A");
-      formData.append('requesterYear', userYear || "N/A");
+      formData.append('requesterEmail', userEmail);   // ✅ FIXED: was 'email'
+      formData.append('program', userProgram || 'N/A'); // ✅ FIXED: was 'requesterProgram'
+      formData.append('yearLevel', userYear || 'N/A'); // ✅ FIXED: was 'requesterYear'
 
       if (file) {
         formData.append('file', file);
       }
 
-      const url = isEdit 
-        ? `${API_BASE_URL}/api/docs/update/${initialData._id}` 
+      const url = isEdit
+        ? `${API_BASE_URL}/api/docs/update/${initialData._id}`
         : `${API_BASE_URL}/api/docs/create`;
-      
+
       const method = isEdit ? 'patch' : 'post';
 
       await axios({
-        method: method,
-        url: url,
+        method,
+        url,
         data: formData,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -90,9 +87,9 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
       });
 
       alert(isEdit ? "✅ Request updated successfully!" : "✅ Request submitted successfully!");
-      resetForm(); 
-      if (onSuccess) onSuccess(); 
-      onClose(); 
+      resetForm();
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (err) {
       console.error("Submission Error:", err.response?.data);
       const errorMessage = err.response?.data?.message || "Error processing request.";
@@ -106,15 +103,13 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    // Frontend validation
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
     if (!allowedTypes.includes(selectedFile.type)) {
       alert("Only PDFs and Images (JPG/PNG) are allowed!");
-      e.target.value = null; 
+      e.target.value = null;
       return;
     }
 
-    // Limit size to 5MB (Optional but recommended)
     if (selectedFile.size > 5 * 1024 * 1024) {
       alert("File is too large! Maximum size is 5MB.");
       e.target.value = null;
@@ -141,9 +136,9 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
           <div>
             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Document Type *</label>
-            <select 
-              value={documentType} 
-              onChange={(e) => setDocumentType(e.target.value)} 
+            <select
+              value={documentType}
+              onChange={(e) => setDocumentType(e.target.value)}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 font-medium"
             >
               <option value="">Select a document...</option>
@@ -153,9 +148,9 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
 
           <div>
             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Description / Purpose</label>
-            <textarea 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl resize-none outline-none focus:border-blue-500 font-medium"
               placeholder="e.g., For scholarship application..."
               rows={3}
@@ -178,16 +173,16 @@ const Request = ({ isOpen, onClose, onSuccess, initialData }) => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button 
-              type="button" 
-              onClick={() => { resetForm(); onClose(); }} 
+            <button
+              type="button"
+              onClick={() => { resetForm(); onClose(); }}
               className="flex-1 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-colors uppercase tracking-widest text-xs"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              disabled={loading} 
+            <button
+              type="submit"
+              disabled={loading}
               className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-600 transition-all active:scale-95 disabled:bg-slate-400 uppercase tracking-widest text-xs"
             >
               {loading ? "Processing..." : initialData ? "Save Changes" : "Submit Request"}
