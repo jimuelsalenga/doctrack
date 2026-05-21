@@ -93,6 +93,15 @@ const Register = () => {
                         <option value="BS in Nursing">BS in Nursing</option>
                     </select>
 
+                    <select
+    className="w-full border border-slate-300 p-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500"
+    value={formData.role}
+    onChange={(e) => setFormData({...formData, role: e.target.value})}
+>
+    <option value="Requester">Student / Requester Account</option>
+    <option value="Admin">Staff / Admin Account</option>
+</select>
+
                     {/* ✅ REMOVED: role dropdown — no more Admin self-registration */}
 
                     <button
