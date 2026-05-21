@@ -8,12 +8,14 @@ const RequestSchema = new mongoose.Schema({
     description: { type: String, trim: true, maxlength: 500 },
     fileName: { type: String },
     filePath: { type: String },
-    fileUrl: { type: String },  // ✅ NEW: Cloudinary public URL
+    fileUrl: { type: String },
     status: {
         type: String,
-        enum: ['Pending', 'Under Review', 'Approved', 'Ready', 'Rejected'],
+        enum: ['Pending', 'Under Review', 'Approved', 'Ready', 'Rejected', 'Completed'], // ✅ Added Completed
         default: 'Pending'
     },
+    dueDate: { type: Date },        
+    estimatedDays: { type: Number },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     remarks: { type: String, trim: true, maxlength: 300, default: "" },
     statusHistory: [{

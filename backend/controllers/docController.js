@@ -36,11 +36,25 @@ exports.getAllRequests = async (req, res) => {
 exports.updateRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks } = req.body;
+        const { status, remarks, estimatedDays } = req.body;
+
+        const updateData = {
+            status,
+            remarks,
+            $push: { statusHistory: { status, remarks, changedAt: new Date() } }
+        };
+
+        // ✅ Auto-calculate due date when Approved or Ready
+        if (status === 'Approved' || status === 'Ready') {
+            const days = parseInt(estimatedDays) || 3; // default 3 days
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + days);
+            updateData.dueDate = dueDate;
+            updateData.estimatedDays = days;
+        }
+
         const updatedRequest = await Request.findByIdAndUpdate(
-            id,
-            { status, remarks, $push: { statusHistory: { status, remarks, changedAt: new Date() } } },
-            { new: true, runValidators: true }
+            id, updateData, { new: true, runValidators: true }
         );
         if (!updatedRequest) return res.status(404).json({ message: "Request not found" });
         res.status(200).json(updatedRequest);
@@ -69,8 +83,7 @@ exports.createRequest = async (req, res) => {
             documentType, description,
             program: program || 'N/A',
             yearLevel: yearLevel || 'N/A',
-            fileName,
-            fileUrl,
+            fileName, fileUrl,
             status: 'Pending'
         });
 
@@ -97,5 +110,30 @@ exports.updateRequestContent = async (req, res) => {
         res.json(updatedDoc);
     } catch (err) {
         res.status(500).json({ message: "Error updating content", error: err.message });
+    }
+};
+
+// ✅ NEW: Student marks their Ready request as Completed after pickup
+exports.markCompleted = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const request = await Request.findById(id);
+
+        if (!request) return res.status(404).json({ message: "Request not found" });
+        if (request.status !== 'Ready') {
+            return res.status(400).json({ message: "Only Ready requests can be marked as completed." });
+        }
+
+        const updatedRequest = await Request.findByIdAndUpdate(
+            id,
+            {
+                status: 'Completed',
+                $push: { statusHistory: { status: 'Completed', remarks: 'Document picked up by student.', changedAt: new Date() } }
+            },
+            { new: true }
+        );
+        res.status(200).json(updatedRequest);
+    } catch (err) {
+        res.status(500).json({ message: "Error marking as completed", error: err.message });
     }
 };
