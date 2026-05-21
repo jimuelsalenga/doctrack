@@ -250,6 +250,37 @@ const AdminDashboard = () => {
                 <DetailItem icon={<Mail size={18}/>} label="Email Address" value={selectedRequest.requesterEmail || selectedRequest.userEmail || "N/A"} />
                 <DetailItem icon={<FileText size={18}/>} label="Document" value={selectedRequest.documentType} />
                 <DetailItem icon={<Clock size={18}/>} label="Submitted On" value={new Date(selectedRequest.createdAt || selectedRequest.submittedAt).toLocaleString()} />
+                
+                    {/* ✅ NEW: File preview for admin */}
+    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+        <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-3">Supporting File</p>
+        {selectedRequest.fileUrl ? (
+            <div className="space-y-3">
+                {selectedRequest.fileName?.toLowerCase().endsWith('.pdf') ? (
+                    <div className="rounded-xl overflow-hidden border border-slate-200" style={{ height: '200px' }}>
+                        <iframe src={selectedRequest.fileUrl} title="PDF" className="w-full h-full" />
+                    </div>
+                ) : (
+                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-white">
+                        <img
+                            src={selectedRequest.fileUrl}
+                            alt="Supporting file"
+                            className="w-full max-h-48 object-contain"
+                        />
+                    </div>
+                )}
+                <a href={selectedRequest.fileUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-blue-600 hover:bg-blue-50 transition-all">
+                    <FileText size={14} /> Open Full File
+                </a>
+            </div>
+        ) : (
+            <p className="text-sm text-slate-400 font-medium">
+                {selectedRequest.fileName || "No file attached"}
+            </p>
+        )}
+    </div>
+
                 {selectedRequest.remarks && (
                   <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100">
                     <p className="text-[9px] font-black text-amber-600 uppercase mb-1">Latest Remarks</p>
