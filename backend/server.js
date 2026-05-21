@@ -2,8 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+const fs = require('fs');
+const YAML = require('js-yaml');
+const swaggerDocument = YAML.load(fs.readFileSync('./docs/swagger.yaml', 'utf8'));
 require('dotenv').config();
 
 const app = express();
@@ -66,6 +67,8 @@ app.use(async (req, res, next) => {
 app.get('/health', (req, res) => res.send('API is running...'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/docs', require('./routes/docRoutes'));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use((err, req, res, next) => {
   console.error('Captured Error:', err.stack);

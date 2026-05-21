@@ -1,0 +1,537 @@
+openapi: 3.0.0
+info:
+  title: DocTrack API
+  description: Document Request and Approval System - New Era University
+  version: 1.0.0
+
+servers:
+  - url: https://doctrack-taupe.vercel.app
+    description: Production Server
+  - url: http://localhost:5000
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Enter your token like: Bearer <your_token_here>"
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          example: student@neu.edu.ph
+        password:
+          type: string
+          example: password123
+
+    RegisterRequest:
+      type: object
+      required: [name, email, password, role]
+      properties:
+        name:
+          type: string
+          example: Juan Dela Cruz
+        email:
+          type: string
+          example: student@neu.edu.ph
+        password:
+          type: string
+          example: password123
+        role:
+          type: string
+          enum: [Student, Admin]
+          example: Student
+        program:
+          type: string
+          example: BSIT
+        yearLevel:
+          type: string
+          example: 3rd Year
+
+    DocumentRequest:
+      type: object
+      required: [documentType]
+      properties:
+        documentType:
+          type: string
+          example: Transcript of Records
+        description:
+          type: string
+          example: Needed for scholarship application
+        fileUrl:
+          type: string
+          example: https://res.cloudinary.com/sample/sample.pdf
+        fileName:
+          type: string
+          example: requirements.pdf
+
+    StatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [Pending, Under Review, Approved, Ready, Rejected, Completed]
+          example: Approved
+        remarks:
+          type: string
+          example: Documents verified and approved.
+        estimatedDays:
+          type: integer
+          example: 3
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        name:
+          type: string
+          example: Juan Dela Cruz
+        role:
+          type: string
+          example: Student
+        userId:
+          type: string
+          example: 64abc123def456
+        email:
+          type: string
+          example: student@neu.edu.ph
+        program:
+          type: string
+          example: BSIT
+        yearLevel:
+          type: string
+          example: 3rd Year
+
+    DocumentResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64abc123def456
+        documentType:
+          type: string
+          example: Transcript of Records
+        description:
+          type: string
+          example: Needed for scholarship application
+        status:
+          type: string
+          example: Pending
+        requesterName:
+          type: string
+          example: Juan Dela Cruz
+        requesterEmail:
+          type: string
+          example: student@neu.edu.ph
+        program:
+          type: string
+          example: BSIT
+        yearLevel:
+          type: string
+          example: 3rd Year
+        fileUrl:
+          type: string
+          example: https://res.cloudinary.com/sample/sample.pdf
+        fileName:
+          type: string
+          example: requirements.pdf
+        remarks:
+          type: string
+          example: Please resubmit with complete requirements.
+        estimatedDays:
+          type: integer
+          example: 3
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-15T08:30:00.000Z
+        statusHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              remarks:
+                type: string
+              changedAt:
+                type: string
+                format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: An error occurred
+
+paths:
+
+  # ═══════════════════════════════════════════
+  # AUTH ROUTES
+  # ═══════════════════════════════════════════
+
+  /api/auth/register:
+    post:
+      summary: Register a new user account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: Juan Dela Cruz
+              email: student@neu.edu.ph
+              password: password123
+              role: Student
+              program: BSIT
+              yearLevel: 3rd Year
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+        '400':
+          description: Email already exists or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      summary: Login and receive a JWT token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: student@neu.edu.ph
+              password: password123
+      responses:
+        '200':
+          description: Login successful — copy the token and use it in Authorize 🔒
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ═══════════════════════════════════════════
+  # DOCUMENT ROUTES
+  # ═══════════════════════════════════════════
+
+  /api/docs/all:
+    get:
+      summary: Get all document requests
+      description: >
+        - **Admin**: returns all requests from all students.
+        - **Student**: pass `userId` query param to get only their own requests.
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: userId
+          schema:
+            type: string
+          description: Student's user ID (required when role is Student)
+          example: 64abc123def456
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [Student, Admin]
+          description: Role of the logged-in user
+          example: Student
+      responses:
+        '200':
+          description: List of document requests returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentResponse'
+        '401':
+          description: Unauthorized — token missing or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/docs/create:
+    post:
+      summary: Submit a new document request (Student)
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+            example:
+              documentType: Transcript of Records
+              description: Needed for job application
+              fileUrl: https://res.cloudinary.com/sample/sample.pdf
+              fileName: supporting-docs.pdf
+      responses:
+        '201':
+          description: Document request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/docs/status/{id}:
+    patch:
+      summary: Update the status of a document request (Admin only)
+      description: >
+        Admin can move a request through these statuses:
+        `Pending` → `Under Review` → `Approved` → `Ready` → `Rejected`
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The document request ID
+          example: 64abc123def456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdate'
+            examples:
+              approve:
+                summary: Approve a request
+                value:
+                  status: Approved
+                  remarks: Documents verified and approved.
+                  estimatedDays: 3
+              reject:
+                summary: Reject a request
+                value:
+                  status: Rejected
+                  remarks: Incomplete supporting documents. Please resubmit.
+              underReview:
+                summary: Mark as Under Review
+                value:
+                  status: Under Review
+                  remarks: Request is currently being reviewed.
+              ready:
+                summary: Mark as Ready for Pickup
+                value:
+                  status: Ready
+                  remarks: Your document is ready for pickup at the Registrar's Office.
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Document request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/docs/complete/{id}:
+    patch:
+      summary: Mark a document request as Completed (Student confirms pickup)
+      description: Called when the student physically picks up their document from the Registrar's Office.
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The document request ID
+          example: 64abc123def456
+      responses:
+        '200':
+          description: Request marked as Completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request marked as completed
+        '404':
+          description: Document request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/docs/{id}:
+    get:
+      summary: Get a single document request by ID
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The document request ID
+          example: 64abc123def456
+      responses:
+        '200':
+          description: Document request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '404':
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Edit a document request (Student — Pending status only)
+      description: Students can only edit their own requests while status is still `Pending`.
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The document request ID
+          example: 64abc123def456
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+            example:
+              documentType: Certificate of Enrollment
+              description: Updated reason for request
+              fileUrl: https://res.cloudinary.com/sample/updated.pdf
+              fileName: updated-docs.pdf
+      responses:
+        '200':
+          description: Request updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '403':
+          description: Can only edit requests with Pending status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a document request (Student — Pending status only)
+      tags: [Documents]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The document request ID
+          example: 64abc123def456
+      responses:
+        '200':
+          description: Request deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request deleted successfully
+        '403':
+          description: Can only delete Pending requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
