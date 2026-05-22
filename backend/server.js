@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 require('dotenv').config();
 
@@ -121,15 +120,54 @@ app.use(async (req, res, next) => {
 app.get('/health', (req, res) => res.send('API is running...'));
 
 // ✅ Swagger UI route — accessible at /api-docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customSiteTitle: 'DocTrack API Docs',
-  customCss: '.swagger-ui .topbar { background-color: #1e293b; } .swagger-ui .topbar-wrapper img { display: none; } .swagger-ui .topbar-wrapper::after { content: "DocTrack API"; color: white; font-size: 1.2rem; font-weight: bold; }',
-  swaggerOptions: {
-    persistAuthorization: true // keeps JWT token between page refreshes
-  }
-}));
+app.get('/api-docs', (req, res) => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>DocTrack API Documentation</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+        <style>
+          body { margin: 0; }
+          .swagger-ui .topbar { background-color: #1e293b; }
+          .swagger-ui .topbar-wrapper img { display: none; }
+          .swagger-ui .topbar-wrapper::after {
+            content: "DocTrack API Documentation";
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-left: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+        <script>
+          window.onload = function() {
+            SwaggerUIBundle({
+              url: '/api-docs.json',
+              dom_id: '#swagger-ui',
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+              ],
+              layout: 'StandaloneLayout',
+              persistAuthorization: true,
+              deepLinking: true
+            });
+          };
+        </script>
+      </body>
+    </html>
+  `;
+  res.send(html);
+});
 
-// ✅ JSON spec endpoint (for submission link)
+// ✅ Keep this — serves the raw JSON spec
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
