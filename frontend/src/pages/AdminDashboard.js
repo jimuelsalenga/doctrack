@@ -12,8 +12,6 @@ import neuLogo from '../assets/neu-logo.png';
 
 const ITEMS_PER_PAGE = 10;
 
-// ─── Settings & Profile helpers ───────────────────────────────────────────────
-
 const Toggle = ({ enabled, onToggle }) => (
   <button onClick={onToggle} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 ${enabled ? 'bg-blue-600' : 'bg-slate-200'}`}>
     <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -49,18 +47,13 @@ const InputField = ({ label, value, onChange, type = 'text', placeholder, icon, 
     <div className="relative">
       {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">{icon}</div>}
       <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        disabled={disabled}
+        type={type} value={value} onChange={onChange}
+        placeholder={placeholder} disabled={disabled}
         className={`w-full ${icon ? 'pl-11' : 'pl-4'} pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
       />
     </div>
   </div>
 );
-
-// ─── Main Component ────────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -78,7 +71,6 @@ const AdminDashboard = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
-  // ── Profile state ──
   const [profileData, setProfileData] = useState({
     name: localStorage.getItem('name') || 'Administrator',
     email: localStorage.getItem('email') || 'admin@neu.edu.ph',
@@ -92,11 +84,9 @@ const AdminDashboard = () => {
   const [avatarPreview, setAvatarPreview] = useState(localStorage.getItem('avatarPreview') || null);
   const fileInputRef = useRef(null);
 
-  // ── Password change state ──
   const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
   const [showPassFields, setShowPassFields] = useState(false);
 
-  // ── Settings state ──
   const [settings, setSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,
@@ -210,7 +200,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // ── Profile handlers ──
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -238,7 +227,6 @@ const AdminDashboard = () => {
     if (!passwordForm.current) return showToast('Enter your current password', 'error');
     if (passwordForm.newPass.length < 8) return showToast('New password must be at least 8 characters', 'error');
     if (passwordForm.newPass !== passwordForm.confirm) return showToast('Passwords do not match', 'error');
-    // API call would go here
     showToast('Password changed successfully');
     setPasswordForm({ current: '', newPass: '', confirm: '' });
     setShowPassFields(false);
@@ -249,7 +237,6 @@ const AdminDashboard = () => {
     showToast('Setting updated');
   };
 
-  // ── Data pipeline ──
   const filteredAndSortedData = useMemo(() => {
     let filtered = requests.filter(req => {
       const matchesTab = activeTab === 'All' || req.status === activeTab;
@@ -309,7 +296,7 @@ const AdminDashboard = () => {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-[300] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold flex items-center gap-3 transition-all ${toast.type === 'error' ? 'bg-rose-500' : 'bg-emerald-600'}`}>
+        <div className={`fixed top-6 right-6 z-[300] px-6 py-4 rounded-2xl shadow-2xl text-white font-bold flex items-center gap-3 ${toast.type === 'error' ? 'bg-rose-500' : 'bg-emerald-600'}`}>
           {toast.type === 'error' ? <XCircle size={20} /> : <CheckCircle size={20} />}
           {toast.msg}
         </div>
@@ -383,7 +370,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ─── Sidebar ──────────────────────────────────────────────────────────── */}
+      {/* Sidebar */}
       <aside className="w-72 bg-white border-r border-slate-200 h-screen p-6 fixed flex flex-col z-20">
         <div className="flex items-center gap-3 mb-10 px-2">
           <img src={neuLogo} alt="NEU Logo" className="w-10 h-10 object-contain" />
@@ -421,10 +408,10 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* ─── Main Content ─────────────────────────────────────────────────────── */}
+      {/* Main Content */}
       <main className="flex-1 ml-72 p-10 overflow-y-auto h-screen">
 
-        {/* ── Dashboard View ── */}
+        {/* Dashboard View */}
         {currentView === 'dashboard' && (
           <div className="max-w-7xl mx-auto">
             <header className="mb-10 flex justify-between items-end">
@@ -519,7 +506,7 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
               {filteredAndSortedData.length === 0 && !loading && (
-                <div className="py-20 text-center text-slate-400 font-bold">No requests found matching your criteria.</div>
+                <div className="py-20 text-center text-slate-400 font-bold">No requests found.</div>
               )}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-8 py-5 border-t border-slate-100">
@@ -548,7 +535,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* ── Profile View ── */}
+        {/* Profile View */}
         {currentView === 'profile' && (
           <div className="max-w-3xl mx-auto">
             <header className="mb-10">
@@ -556,7 +543,6 @@ const AdminDashboard = () => {
               <p className="text-slate-500 font-medium">Manage your personal information and account security.</p>
             </header>
 
-            {/* Avatar + Name Hero */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 mb-6 flex items-center gap-8">
               <div className="relative flex-shrink-0">
                 {avatarPreview ? (
@@ -586,9 +572,7 @@ const AdminDashboard = () => {
               ) : (
                 <div className="flex gap-2">
                   <button onClick={() => setProfileEditing(false)}
-                    className="px-4 py-3 border border-slate-200 text-slate-500 text-sm font-black rounded-2xl hover:bg-slate-50 transition-all">
-                    Cancel
-                  </button>
+                    className="px-4 py-3 border border-slate-200 text-slate-500 text-sm font-black rounded-2xl hover:bg-slate-50 transition-all">Cancel</button>
                   <button onClick={handleSaveProfile}
                     className="px-5 py-3 bg-emerald-600 text-white text-sm font-black rounded-2xl hover:bg-emerald-700 transition-all flex items-center gap-2">
                     <Save size={15} /> Save
@@ -597,7 +581,6 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Profile Fields */}
             <SectionCard title="Personal Information" subtitle="Update your name, contact, and role details." icon={<User size={18} />}>
               <div className="grid grid-cols-2 gap-4">
                 <InputField label="Full Name" value={profileEditing ? profileDraft.name : profileData.name}
@@ -622,14 +605,12 @@ const AdminDashboard = () => {
                   value={profileEditing ? profileDraft.bio : profileData.bio}
                   onChange={e => setProfileDraft(d => ({ ...d, bio: e.target.value }))}
                   placeholder="A short description about yourself..."
-                  disabled={!profileEditing}
-                  rows={3}
+                  disabled={!profileEditing} rows={3}
                   className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </SectionCard>
 
-            {/* Change Password */}
             <div className="mt-6">
               <SectionCard title="Change Password" subtitle="Keep your account secure with a strong password." icon={<KeyRound size={18} />}>
                 {!showPassFields ? (
@@ -658,9 +639,7 @@ const AdminDashboard = () => {
                     )}
                     <div className="flex gap-3 pt-2">
                       <button onClick={() => { setShowPassFields(false); setPasswordForm({ current: '', newPass: '', confirm: '' }); }}
-                        className="px-4 py-3 border border-slate-200 text-slate-500 text-sm font-black rounded-2xl hover:bg-slate-50 transition-all">
-                        Cancel
-                      </button>
+                        className="px-4 py-3 border border-slate-200 text-slate-500 text-sm font-black rounded-2xl hover:bg-slate-50 transition-all">Cancel</button>
                       <button onClick={handleChangePassword}
                         className="px-5 py-3 bg-blue-600 text-white text-sm font-black rounded-2xl hover:bg-blue-700 transition-all flex items-center gap-2">
                         <Shield size={15} /> Update Password
@@ -673,17 +652,14 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* ── Settings View ── */}
+        {/* Settings View */}
         {currentView === 'settings' && (
           <div className="max-w-3xl mx-auto">
             <header className="mb-10">
               <h1 className="text-4xl font-black text-slate-900 tracking-tight">Settings</h1>
               <p className="text-slate-500 font-medium">Configure notifications, appearance, and security preferences.</p>
             </header>
-
             <div className="space-y-6">
-
-              {/* Notifications */}
               <SectionCard title="Notifications" subtitle="Control how and when you receive alerts." icon={<Bell size={18} />}>
                 <SettingRow label="Email Notifications" description="Receive request updates via email">
                   <Toggle enabled={settings.emailNotifications} onToggle={() => handleSettingToggle('emailNotifications')} />
@@ -706,7 +682,6 @@ const AdminDashboard = () => {
                 </SettingRow>
               </SectionCard>
 
-              {/* Appearance */}
               <SectionCard title="Appearance" subtitle="Customize how the dashboard looks and feels." icon={<Palette size={18} />}>
                 <SettingRow label="Dark Mode" description="Switch to a dark color scheme">
                   <Toggle enabled={settings.darkMode} onToggle={() => handleSettingToggle('darkMode')} />
@@ -734,7 +709,6 @@ const AdminDashboard = () => {
                 </SettingRow>
               </SectionCard>
 
-              {/* Security */}
               <SectionCard title="Security" subtitle="Protect your account with enhanced security options." icon={<Shield size={18} />}>
                 <SettingRow label="Auto Logout" description="Automatically log out after 30 minutes of inactivity">
                   <Toggle enabled={settings.autoLogout} onToggle={() => handleSettingToggle('autoLogout')} />
@@ -755,7 +729,6 @@ const AdminDashboard = () => {
                 </SettingRow>
               </SectionCard>
 
-              {/* Danger Zone */}
               <div className="bg-rose-50 rounded-3xl border border-rose-100 p-8">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="p-2.5 bg-rose-100 text-rose-600 rounded-2xl"><AlertTriangle size={18} /></div>
@@ -768,12 +741,10 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-rose-100">
                     <div>
                       <p className="text-sm font-bold text-slate-700">Clear All Rejected Requests</p>
-                      <p className="text-xs text-slate-400 font-medium">Permanently delete all rejected records from the database.</p>
+                      <p className="text-xs text-slate-400 font-medium">Permanently delete all rejected records.</p>
                     </div>
                     <button onClick={() => showToast('Feature requires backend confirmation', 'error')}
-                      className="px-4 py-2.5 bg-rose-600 text-white text-xs font-black rounded-xl hover:bg-rose-700 transition-all">
-                      Clear
-                    </button>
+                      className="px-4 py-2.5 bg-rose-600 text-white text-xs font-black rounded-xl hover:bg-rose-700 transition-all">Clear</button>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-rose-100">
                     <div>
@@ -781,13 +752,10 @@ const AdminDashboard = () => {
                       <p className="text-xs text-slate-400 font-medium">Download a CSV of all document requests.</p>
                     </div>
                     <button onClick={() => showToast('Export initiated (coming soon)', 'success')}
-                      className="px-4 py-2.5 bg-slate-900 text-white text-xs font-black rounded-xl hover:bg-slate-700 transition-all">
-                      Export
-                    </button>
+                      className="px-4 py-2.5 bg-slate-900 text-white text-xs font-black rounded-xl hover:bg-slate-700 transition-all">Export</button>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         )}
@@ -812,9 +780,12 @@ const AdminDashboard = () => {
               <div className="space-y-3 mb-8">
                 <DetailItem icon={<User size={18} />} label="Student" value={selectedRequest.requesterName || 'Unknown'} />
                 <DetailItem icon={<Hash size={18} />} label="Tracking ID" value={selectedRequest._id} />
-                <DetailItem icon={<Mail size={18} />} label="Email" value={selectedRequest.requesterEmail || '{userEmail}'} />
-                <DetailItem icon={<GraduationCap size={18} />} label="Program" value={selectedRequest.program || '{userProgram}'} />
-                <DetailItem icon={<BookOpen size={18} />} label="Year Level" value={selectedRequest.yearLevel || '{userYear}'} />
+                {/* ✅ FIXED: Changed fallback from '{userEmail}' to 'N/A' */}
+                <DetailItem icon={<Mail size={18} />} label="Email" value={selectedRequest.requesterEmail || 'N/A'} />
+                {/* ✅ FIXED: Changed fallback from '{userProgram}' to 'N/A' */}
+                <DetailItem icon={<GraduationCap size={18} />} label="Program" value={selectedRequest.program || 'N/A'} />
+                {/* ✅ FIXED: Changed fallback from '{userYear}' to 'N/A' */}
+                <DetailItem icon={<BookOpen size={18} />} label="Year Level" value={selectedRequest.yearLevel || 'N/A'} />
                 <DetailItem icon={<FileText size={18} />} label="Document Type" value={selectedRequest.documentType} />
                 {selectedRequest.description && (
                   <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100">
@@ -826,6 +797,7 @@ const AdminDashboard = () => {
                   </div>
                 )}
                 <DetailItem icon={<Clock size={18} />} label="Submitted On" value={new Date(selectedRequest.createdAt).toLocaleString()} />
+
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Supporting File</p>
                   {selectedRequest.fileName && (
@@ -853,6 +825,7 @@ const AdminDashboard = () => {
                     <p className="text-sm text-slate-400 font-medium">{selectedRequest.fileName || 'No file attached'}</p>
                   )}
                 </div>
+
                 {selectedRequest.remarks && (
                   <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100">
                     <p className="text-[9px] font-black text-amber-600 uppercase mb-1">Latest Remarks</p>
@@ -904,8 +877,6 @@ const AdminDashboard = () => {
     </div>
   );
 };
-
-// ─── Sub-components ────────────────────────────────────────────────────────────
 
 const StatCard = ({ label, count, color, icon }) => (
   <div className="p-5 rounded-[24px] border bg-white shadow-sm flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-xl">
