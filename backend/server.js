@@ -68,7 +68,10 @@ const swaggerOptions = {
     },
     security: [{ bearerAuth: [] }]
   },
-  apis: ['./routes/*.js'] // reads JSDoc from all route files
+ apis: [
+  path.join(__dirname, 'routes', 'authRoutes.js'),
+  path.join(__dirname, 'routes', 'docRoutes.js')
+]
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
