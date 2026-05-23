@@ -99,7 +99,6 @@ const Register = () => {
     onChange={(e) => setFormData({...formData, role: e.target.value})}
 >
     <option value="Requester">Student / Requester Account</option>
-    <option value="Admin">Staff / Admin Account</option>
 </select>
 
                     {/* ✅ REMOVED: role dropdown — no more Admin self-registration */}
